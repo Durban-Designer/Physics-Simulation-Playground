@@ -1,0 +1,14 @@
+\subsection{Proper Abrikosov-Gor'kov Theory}
+Disorder, in the form of impurities and defects, is an unavoidable aspect of real materials and can have a profound impact on superconductivity. The Abrikosov-Gor'kov (AG) theory provides a framework for understanding the effect of non-magnetic impurities on the critical temperature ($T_c$). The theory predicts that such impurities break Cooper pairs, leading to a suppression of $T_c$. The correct formulation is given by:
+\begin{equation}
+\ln\left(\frac{T_{c0}}{T_c}\right) = \psi\left(\frac{1}{2} + \frac{\Gamma}{2\pi k_B T_c}\right) - \psi\left(\frac{1}{2}\right)
+\label{eq:ag}
+\end{equation}
+
+\begin{itemize}
+    \item $T_{c0}$ is the critical temperature of the pristine, disorder-free material.
+    \item $T_c$ is the suppressed critical temperature in the presence of disorder.
+    \item $\psi(z)$ is the digamma function.
+    \item $\Gamma$ is the impurity scattering rate, defined as $\Gamma = \hbar / (2\tau)$, where $\tau$ is the elastic scattering time of electrons off impurities.
+\end{itemize}
+A crucial part of the implementation is to calculate the scattering time $\tau$ from microscopic material properties, rather than treating it as a simple fitting parameter. This connects the abstract theory to concrete material characteristics.

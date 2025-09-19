@@ -1,0 +1,11 @@
+\subsection{Multi-Scale Physics Integration}
+The parameters for our theoretical models (e.g., the electron-phonon coupling matrix $\lambda(\omega,\omega')$ in Eliashberg theory) are not arbitrary. They must be derived from the fundamental electronic and lattice structure of the material. This requires a multi-scale approach:
+\begin{enumerate}
+    \item \textbf{Electronic Structure}: Use methods like Density Functional Theory (DFT) or its extension, Dynamical Mean-Field Theory (DMFT), to solve the many-body Hamiltonian and obtain the electronic band structure and wavefunctions.
+    \begin{equation}
+    H = H_{\text{kinetic}} + H_{\text{e-e}} + H_{\text{e-ph}} + H_{\text{disorder}}
+    \end{equation}
+    \item \textbf{Lattice Dynamics}: Calculate the phonon frequencies $\omega(q)$ and the electron-phonon matrix elements $g(k,k',\nu) = \langle k | \partial V / \partial u_\nu | k' \rangle$ from first principles.
+    \item \textbf{Thermodynamics}: Use the results from the lower scales to construct a free energy functional $F(T, \delta, \Delta) = U - TS$ and minimize it to find the thermodynamically stable phases.
+\end{enumerate}
+This requires interfacing our simulation code with established electronic structure packages like VASP or Quantum ESPRESSO.

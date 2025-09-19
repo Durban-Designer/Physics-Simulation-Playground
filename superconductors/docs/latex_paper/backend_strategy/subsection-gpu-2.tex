@@ -1,0 +1,7 @@
+\subsection{GPU Backend}
+The GPU backend serves as the classical high-performance computing workhorse. Its massively parallel architecture is essential for tackling the most numerically intensive parts of the theoretical model. Key tasks for the GPU include:
+\begin{itemize}
+    \item Solving the self-consistent BCS-Eliashberg integral equation, which can be discretized into large matrix operations well-suited for GPU acceleration.
+    \item Running the Markov Chain Monte Carlo (MCMC) simulations required for Bayesian uncertainty quantification, where millions of model instances can be evaluated in parallel.
+    \item Interfacing with and accelerating first-principles electronic structure packages (e.g., DFT) that have been ported to run on GPU hardware.
+\end{itemize}

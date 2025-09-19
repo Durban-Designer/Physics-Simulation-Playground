@@ -1,0 +1,31 @@
+# Dockerfile for running integration tests
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python test dependencies
+COPY requirements.txt requirements-test.txt ./
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt -r requirements-test.txt
+
+# Copy application code
+COPY . /app/
+
+# Create test results directory
+RUN mkdir -p /app/test-results
+
+# Run tests by default
+CMD ["pytest", "tests/", "-v", "--tb=short"]

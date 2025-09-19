@@ -1,0 +1,62 @@
+# Core dependencies
+numpy>=1.21.0
+scipy>=1.8.0
+matplotlib>=3.5.0
+
+# Quantum simulation (Pasqal/Pulser)
+pulser>=0.15.0
+pulser-simulation>=0.15.0
+pasqal-cloud>=0.2.0
+
+# Digital quantum computing (Qadence/PennyLane)
+qadence>=0.4.0
+pennylane>=0.30.0
+pennylane[qml]
+
+# Classical optimization and ML
+scikit-learn>=1.1.0
+pandas>=1.4.0
+sympy>=1.10.0
+
+# Async/parallel computing
+asyncio
+multiprocessing
+concurrent.futures
+
+# Data analysis and visualization
+seaborn>=0.11.0
+plotly>=5.8.0
+ipywidgets>=7.7.0
+
+# Google Cloud (for potential scaling)
+google-cloud-storage>=2.8.0
+google-cloud-firestore>=2.11.0
+
+# Development and testing
+pytest>=7.1.0
+pytest-asyncio>=0.21.0
+black>=22.3.0
+flake8>=4.0.0
+mypy>=0.950
+
+# Jupyter ecosystem
+jupyter>=1.0.0
+jupyterlab>=3.4.0
+notebook>=6.4.0
+
+# Optional: High-performance computing
+numba>=0.56.0  # JIT compilation for speed
+numexpr>=2.8.0  # Fast array operations
+
+# Optional: Quantum chemistry backends
+pyscf>=2.0.0  # For ab-initio calculations
+openfermion>=1.5.0  # Quantum chemistry tools
+
+# GPU acceleration with NVIDIA cuQuantum (RTX 5090 optimized)
+cupy-cuda12x>=13.0.0  # GPU-accelerated NumPy
+cuquantum-python>=25.9.0  # NVIDIA cuQuantum quantum simulation
+nvidia-cublas-cu12>=12.9.0  # CUDA linear algebra
+nvidia-cuda-runtime-cu12>=12.9.0  # CUDA runtime
+
+# Optional: JAX with CUDA support for additional backends
+# jax[cuda]>=0.4.0  # JAX with CUDA support

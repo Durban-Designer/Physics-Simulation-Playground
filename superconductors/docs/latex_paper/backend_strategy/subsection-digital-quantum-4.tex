@@ -1,0 +1,7 @@
+\subsection{Digital Quantum Backend}
+The digital or gate-based backend utilizes the same Pasqal quantum hardware but in its universal computation mode. Here, the neutral atoms act as qubits, and laser pulses are applied to execute a sequence of quantum gates, forming a quantum circuit. This mode is ideal for running specific quantum algorithms designed to solve well-defined problems with high precision. Key applications include:
+\begin{itemize}
+    \item Employing the Variational Quantum Eigensolver (VQE) algorithm to calculate the precise ground state energy of a material's unit cell. This result can then be used as a high-accuracy input parameter for the theoretical models running on the GPU.
+    \item Using Quantum Phase Estimation (QPE) to achieve even higher precision in energy measurements for small, well-characterized systems.
+\end{itemize}
+As with the analog mode, quantum circuits are first designed and tested on a classical simulator to ensure correctness before being deployed on the cloud-based quantum computer. This quad-brid approach, combining classical HPC with both analog and digital quantum computation, provides a uniquely powerful and comprehensive tool for materials discovery.

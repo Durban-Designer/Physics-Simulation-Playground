@@ -1,0 +1,80 @@
+# Development override for docker-compose
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  # Development database with exposed ports
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: superconductor_discovery_dev
+      POSTGRES_PASSWORD: dev123
+    volumes:
+      - ./db/dev-init.sql:/docker-entrypoint-initdb.d/01-dev-init.sql
+
+  # Development API with hot reload
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: base  # Use base stage for development
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+      - PYTHONDEBUG=1
+    volumes:
+      - ./:/app
+      - /app/.venv  # Exclude virtual environment
+    command: python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+
+  # Jupyter notebook for exploration
+  jupyter:
+    image: jupyter/scipy-notebook:latest
+    container_name: superconductor-jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ./:/home/jovyan/work
+      - ./notebooks:/home/jovyan/notebooks
+    command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+    networks:
+      - superconductor-net
+
+  # Development tools container
+  dev-tools:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev-tools
+    container_name: superconductor-dev-tools
+    volumes:
+      - ./:/app
+    command: tail -f /dev/null  # Keep container running
+    networks:
+      - superconductor-net
+
+  # Skip test runner in dev
+  test-runner:
+    profiles:
+      - testing
+
+  # Celery worker with debug logging
+  celery-worker:
+    environment:
+      - LOG_LEVEL=DEBUG
+      - CELERY_TASK_ALWAYS_EAGER=false  # Run tasks asynchronously
+    command: celery -A orchestration.celery_app worker --loglevel=debug --concurrency=1
+
+  # Add mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: superconductor-mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - superconductor-net

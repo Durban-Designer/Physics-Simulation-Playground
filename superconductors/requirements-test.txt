@@ -1,0 +1,36 @@
+# Test dependencies
+
+# Testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+pytest-timeout>=2.2.0
+pytest-xdist>=3.5.0
+
+# Test utilities
+factory-boy>=3.3.0
+faker>=20.0.0
+hypothesis>=6.92.0
+
+# API testing
+httpx>=0.25.0
+respx>=0.20.0
+
+# Database testing
+pytest-postgresql>=5.0.0
+
+# Mocking
+responses>=0.24.0
+moto>=4.2.0  # AWS service mocking
+
+# Code quality
+black>=23.11.0
+flake8>=6.1.0
+mypy>=1.7.0
+isort>=5.12.0
+bandit>=1.7.0
+
+# Documentation
+sphinx>=7.2.0
+sphinx-rtd-theme>=2.0.0

@@ -1,0 +1,314 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with Flyway migrations
+  postgres:
+    image: postgres:15-alpine
+    container_name: superconductor-postgres
+    environment:
+      POSTGRES_DB: superconductor_discovery
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - superconductor-net
+
+  # Flyway for database migrations
+  flyway:
+    image: flyway/flyway:9-alpine
+    container_name: superconductor-flyway
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/superconductor_discovery
+      FLYWAY_USER: postgres
+      FLYWAY_PASSWORD: postgres123
+      FLYWAY_BASELINE_ON_MIGRATE: "true"
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+    volumes:
+      - ./db/migration:/flyway/sql
+      - ./db/flyway.conf:/flyway/conf/flyway.conf
+    command: migrate
+    networks:
+      - superconductor-net
+
+  # Redis for job queue and caching
+  redis:
+    image: redis:7-alpine
+    container_name: superconductor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy lru-eviction
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - superconductor-net
+
+  # MinIO for S3-compatible object storage
+  minio:
+    image: minio/minio:latest
+    container_name: superconductor-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_DEFAULT_BUCKETS: simulation-results,simulation-logs
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - superconductor-net
+
+  # Celery worker for async job processing
+  celery-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: superconductor-celery-worker
+    depends_on:
+      - redis
+      - postgres
+      - minio
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=superconductor_discovery
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres123
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT=http://minio:9000
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin123
+      - S3_BUCKET=simulation-results
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - PYTHONPATH=/app
+      - CUDA_VISIBLE_DEVICES=0  # For GPU support
+    volumes:
+      - ./:/app
+      - ./logs:/app/logs
+    command: celery -A orchestration.celery_app worker --loglevel=info --concurrency=2
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - superconductor-net
+
+  # Celery beat for scheduled tasks
+  celery-beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: superconductor-celery-beat
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=superconductor_discovery
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres123
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - PYTHONPATH=/app
+    volumes:
+      - ./:/app
+      - ./logs:/app/logs
+    command: celery -A orchestration.celery_app beat --loglevel=info
+    networks:
+      - superconductor-net
+
+  # Flower for Celery monitoring
+  flower:
+    image: mher/flower:2.0
+    container_name: superconductor-flower
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - FLOWER_PORT=5555
+    ports:
+      - "5555:5555"
+    command: celery --broker=redis://redis:6379/0 flower --port=5555
+    networks:
+      - superconductor-net
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: superconductor-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - superconductor-net
+
+  # Grafana for monitoring dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: superconductor-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - superconductor-net
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: superconductor-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@superconductor.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - superconductor-net
+
+  # Main application API
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: superconductor-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=superconductor_discovery
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres123
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT=http://minio:9000
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin123
+      - S3_BUCKET=simulation-results
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - PYTHONPATH=/app
+      - PASQAL_API_KEY=${PASQAL_API_KEY}
+      - PASQAL_PROJECT_ID=${PASQAL_PROJECT_ID}
+      - CUDA_VISIBLE_DEVICES=0
+      - LOG_LEVEL=INFO
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+      - ./logs:/app/logs
+    command: python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - superconductor-net
+
+  # Integration test runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.test
+    container_name: superconductor-test-runner
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=superconductor_test
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres123
+      - REDIS_URL=redis://redis:6379/1
+      - S3_ENDPOINT=http://minio:9000
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin123
+      - S3_BUCKET=test-results
+      - PYTHONPATH=/app
+      - PYTEST_ARGS=${PYTEST_ARGS:--v}
+    volumes:
+      - ./:/app
+      - ./test-results:/app/test-results
+    command: >
+      sh -c "
+        echo 'Waiting for services...' &&
+        sleep 10 &&
+        echo 'Running tests...' &&
+        python -m pytest tests/ ${PYTEST_ARGS} --junitxml=/app/test-results/junit.xml --cov=. --cov-report=xml:/app/test-results/coverage.xml
+      "
+    networks:
+      - superconductor-net
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  prometheus_data:
+  grafana_data:
+  pgadmin_data:
+
+networks:
+  superconductor-net:
+    driver: bridge

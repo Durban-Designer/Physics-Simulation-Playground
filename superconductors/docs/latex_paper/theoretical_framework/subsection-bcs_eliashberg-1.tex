@@ -1,0 +1,14 @@
+\subsection{BCS-Eliashberg Theory Foundation}
+The starting point for any serious model of conventional or many unconventional superconductors is the BCS-Eliashberg theory. This theory extends the original Bardeen-Cooper-Schrieffer (BCS) picture by providing a detailed account of the electron-phonon interaction that mediates pairing. The central object is the superconducting gap function, $\Delta(\omega, T)$, which is determined by solving the following self-consistent integral equation:
+\begin{equation}
+\Delta(\omega,T) = \int_{-\infty}^{\infty} d\omega' \left[ \lambda(\omega,\omega') - \mu^* \right] \frac{\Delta(\omega',T)}{\sqrt{(\omega')^2 + \Delta(\omega',T)^2}} \tanh\left(\frac{\sqrt{(\omega')^2 + \Delta(\omega',T)^2}}{2k_B T}\right)
+\label{eq:eliashberg}
+\end{equation}
+Where:
+\begin{itemize}
+    \item $\Delta(\omega,T)$ is the energy- and temperature-dependent superconducting gap.
+    \item $\lambda(\omega,\omega')$ is the electron-phonon coupling matrix, which contains the detailed physics of the lattice vibrations (phonons) and their interaction with electrons.
+    \item $\mu^*$ is the Coulomb pseudopotential, which represents the effective repulsive interaction between electrons.
+    \item $k_B$ is the Boltzmann constant.
+\end{itemize}
+Solving Equation \ref{eq:eliashberg} is computationally demanding as it requires knowledge of the material-specific function $\lambda(\omega,\omega')$ and must be iterated to convergence. However, it is the minimum theoretical requirement for accurately capturing the physics of phonon-mediated pairing.

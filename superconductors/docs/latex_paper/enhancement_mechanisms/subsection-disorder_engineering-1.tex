@@ -1,0 +1,20 @@
+\subsection{Disorder Engineering (Literature-Based)}
+Experimental studies on materials like cuprates have shown that $T_c$ can be enhanced by introducing a specific, optimal amount of disorder. This effect is highly material-dependent and non-linear. Instead of using arbitrary linear models, our approach is to model this phenomenon by fitting to experimental data from the literature. A proper model for disorder enhancement would take the form of a function fitted to known experimental curves:
+\begin{lstlisting}[language=Python, caption={Proposed model for disorder enhancement}]
+def disorder_enhancement(material, disorder_strength, defect_type):
+    """Based on experimental literature for specific materials"""
+
+    # Material-specific optimal disorder from experiments
+    optimal_disorder = material.experimental_optimal_disorder
+
+    # Fitted to experimental enhancement curves
+    if disorder_strength < optimal_disorder:
+        enhancement = 1 + material.enhancement_slope * disorder_strength
+    else:
+        # Anderson localization suppression
+        suppression = np.exp(-(disorder_strength - optimal_disorder) / material.localization_length)
+        enhancement = material.max_enhancement * suppression
+
+    return enhancement
+\end{lstlisting}
+This data-driven approach ensures that the model's predictions are grounded in physical reality.

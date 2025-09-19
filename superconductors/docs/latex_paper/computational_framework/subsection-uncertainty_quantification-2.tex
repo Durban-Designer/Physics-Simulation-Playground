@@ -1,0 +1,26 @@
+\subsection{Uncertainty Quantification}
+Predictions from a complex model are incomplete without a quantification of their uncertainty. We will employ Bayesian parameter estimation to achieve this. Instead of point estimates, our model will return a probability distribution for the predicted $T_c$.
+\begin{lstlisting}[language=Python, caption={Bayesian Tc Prediction Workflow}]
+def bayesian_tc_prediction(material_params, disorder, experimental_data):
+    """
+    Returns: (tc_mean, tc_std, confidence_interval)
+
+    Uses Markov Chain Monte Carlo to sample parameter posterior
+    given experimental constraints.
+    """
+
+    # Prior distributions from literature
+    priors = get_literature_priors(material_params)
+
+    # Likelihood from experimental data
+    likelihood = experimental_likelihood(experimental_data)
+
+    # MCMC sampling
+    posterior_samples = mcmc_sample(priors, likelihood)
+
+    # Propagate uncertainty through physics model
+    tc_distribution = [physics_model(sample) for sample in posterior_samples]
+
+    return statistics(tc_distribution)
+\end{lstlisting}
+This approach allows us to incorporate uncertainties from both experimental inputs and the model itself, providing a much more honest and useful prediction.

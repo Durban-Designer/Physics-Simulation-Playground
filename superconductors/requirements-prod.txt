@@ -1,0 +1,59 @@
+# Production dependencies for superconductor discovery platform
+
+# Core dependencies
+numpy>=1.24.0
+scipy>=1.10.0
+matplotlib>=3.7.0
+pandas>=2.0.0
+
+# Quantum simulation (Real backends only)
+pulser>=0.15.0
+pulser-simulation>=0.15.0
+pasqal-cloud>=0.2.0
+qiskit>=0.45.0
+qiskit-aer>=0.13.0
+
+# GPU acceleration
+cupy-cuda12x>=13.0.0
+cuquantum-python>=23.10.0
+
+# Database
+psycopg2-binary>=2.9.0
+alembic>=1.12.0
+
+# API framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+python-multipart>=0.0.6
+
+# Job queue
+celery[redis]>=5.3.0
+redis>=5.0.0
+flower>=2.0.0
+
+# Cloud storage
+boto3>=1.29.0
+minio>=7.2.0
+
+# Monitoring and logging
+prometheus-client>=0.19.0
+structlog>=23.2.0
+python-json-logger>=2.0.7
+
+# Circuit breaker and retry
+circuitbreaker>=1.4.0
+tenacity>=8.2.0
+
+# Environment and config
+python-dotenv>=1.0.0
+pyyaml>=6.0
+
+# Security
+cryptography>=41.0.0
+python-jose[cryptography]>=3.3.0
+
+# Utilities
+httpx>=0.25.0
+aiofiles>=23.2.0
+aiocache>=0.12.0

@@ -1,0 +1,33 @@
+\documentclass{article}
+
+% Load custom styling
+\usepackage{style}
+
+\title{\bfseries A Foundational Mathematical Model for Superconductor Simulation}
+\author{The Wyrd Project Team: Royce, Claude, Gemini}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper lays the foundational mathematical and computational framework for a next-generation superconductor simulation platform. Moving beyond phenomenological models, we propose a rigorous, physics-based approach grounded in many-body theory. The framework integrates BCS-Eliashberg theory for the superconducting gap, Abrikosov-Gor'kov theory for disorder effects, and a mechanism for handling competing orders. We also detail models for realistic enhancement mechanisms and outline a robust computational architecture involving multi-scale physics and Bayesian uncertainty quantification. This document serves as the cornerstone for building a predictive tool capable of accelerating the discovery of novel superconducting materials.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% --- Sections ---
+\input{section-introduction-1.tex}
+\input{section-theoretical_framework-2.tex}
+\input{section-enhancement_mechanisms-3.tex}
+\input{section-computational_framework-4.tex}
+\input{section-backend_strategy-5.tex}
+\input{section-conclusion-6.tex}
+
+% --- Bibliography ---
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

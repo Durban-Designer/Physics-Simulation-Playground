@@ -1,0 +1,49 @@
+# Development tools container with all utilities
+FROM python:3.11
+
+# Install development tools
+RUN apt-get update && apt-get install -y \
+    # Database tools
+    postgresql-client \
+    # Redis tools
+    redis-tools \
+    # Network tools
+    curl \
+    wget \
+    netcat-traditional \
+    dnsutils \
+    iputils-ping \
+    # Development tools
+    vim \
+    nano \
+    htop \
+    jq \
+    # Git
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install AWS CLI for S3 operations
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip aws/
+
+# Install database migration tools
+RUN pip install \
+    flyway \
+    pgcli \
+    mycli \
+    litecli \
+    httpie \
+    ipython \
+    ipdb
+
+# Install monitoring tools
+RUN pip install \
+    glances \
+    py-spy
+
+WORKDIR /app
+
+# Keep container running
+CMD ["tail", "-f", "/dev/null"]

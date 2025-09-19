@@ -1,0 +1,49 @@
+# Dockerfile for Celery workers with GPU support
+FROM nvidia/cuda:12.3.0-runtime-ubuntu22.04
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    CUDA_VISIBLE_DEVICES=0
+
+# Install system dependencies including cuQuantum
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3.11-dev \
+    python3-pip \
+    curl \
+    git \
+    build-essential \
+    libpq-dev \
+    # cuQuantum dependencies
+    libgomp1 \
+    libopenblas-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install NVIDIA cuQuantum
+RUN pip3 install nvidia-pyindex && \
+    pip3 install cupy-cuda12x cuquantum
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt requirements-prod.txt ./
+RUN pip3 install --upgrade pip setuptools wheel && \
+    pip3 install -r requirements-prod.txt
+
+# Copy application code
+COPY . /app/
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/results
+
+# Create non-root user
+RUN useradd -m -u 1000 -s /bin/bash celeryuser && \
+    chown -R celeryuser:celeryuser /app
+
+USER celeryuser
+
+# Default command for worker
+CMD ["celery", "-A", "orchestration.celery_app", "worker", "--loglevel=info"]

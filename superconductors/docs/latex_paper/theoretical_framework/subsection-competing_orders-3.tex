@@ -1,0 +1,14 @@
+\subsection{Competing Order Integration}
+In many high-temperature superconductors, particularly the cuprates and iron-based families, superconductivity does not exist in a vacuum. It often coexists and competes with other electronic ordering phenomena, such as Charge Density Waves (CDW) or Spin Density Waves (SDW). These competing orders can suppress or, in some cases, interact with superconductivity in complex ways.
+
+To capture this physics, the model must go beyond a single gap equation and instead solve a system of coupled equations derived from a total free energy functional, $F$:
+\begin{equation}
+F = F_{SC} + F_{CDW} + F_{SDW} + F_{\text{interaction}}
+\end{equation}
+The stable state of the system is found by minimizing this free energy with respect to the order parameters for each phase ($\Delta_{SC}$, $\Delta_{CDW}$, $\Delta_{SDW}$). This leads to a set of coupled gap equations that must be solved simultaneously:
+\begin{align}
+\frac{\partial F}{\partial\Delta_{SC}} &= 0 \\
+\frac{\partial F}{\partial\Delta_{CDW}} &= 0 \\
+\frac{\partial F}{\partial\Delta_{SDW}} &= 0
+\end{align}
+This approach allows the model to explore the phase diagram of a material and correctly predict the conditions under which superconductivity emerges from a background of competing electronic states.
